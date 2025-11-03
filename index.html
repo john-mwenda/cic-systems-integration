@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>System Integration Registry</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --page-bg: #f5f7fa;
+      --card-bg: #ffffff;
+      --text-main: #1f2933;
+      --text-muted: #52606d;
+      --accent: #2563eb;
+      --accent-light: #dbeafe;
+      --border: #d2d6dc;
+      --danger: #c81e1e;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      margin: 0;
+      background: var(--page-bg);
+      color: var(--text-main);
+    }
+
+    header {
+      background: var(--card-bg);
+      padding: 1.5rem clamp(1.5rem, 4vw, 3rem);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 1.75rem;
+      font-weight: 600;
+    }
+
+    main {
+      margin: 0 auto;
+      padding: 2rem clamp(1.5rem, 4vw, 3rem) 4rem;
+      max-width: 1100px;
+      display: grid;
+      gap: 2rem;
+    }
+
+    section {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: clamp(1.5rem, 3vw, 2.25rem);
+      box-shadow: 0 12px 32px rgba(15, 23, 42, 0.08);
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .section-header h2 {
+      margin: 0;
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+
+    .section-header p {
+      margin: 0;
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    form {
+      display: grid;
+      gap: 1rem;
+    }
+
+    label {
+      display: grid;
+      gap: 0.5rem;
+      font-size: 0.95rem;
+    }
+
+    input[type="text"],
+    input[type="search"],
+    textarea,
+    select {
+      padding: 0.75rem 1rem;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: #ffffff;
+      font-size: 0.95rem;
+      color: inherit;
+      transition: border-color 150ms ease, box-shadow 150ms ease;
+      resize: vertical;
+      min-height: 48px;
+    }
+
+    textarea {
+      min-height: 120px;
+    }
+
+    input:focus,
+    textarea:focus,
+    select:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-light);
+    }
+
+    button {
+      appearance: none;
+      border: none;
+      border-radius: 12px;
+      padding: 0.75rem 1.5rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      transition: transform 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
+    }
+
+    button.primary {
+      background: var(--accent);
+      color: #ffffff;
+      box-shadow: 0 10px 25px rgba(37, 99, 235, 0.2);
+    }
+
+    button.primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 12px 30px rgba(37, 99, 235, 0.25);
+    }
+
+    button.ghost {
+      background: transparent;
+      color: var(--accent);
+      border: 1px solid var(--accent);
+    }
+
+    button.ghost:hover {
+      background: var(--accent-light);
+    }
+
+    button.danger {
+      background: var(--danger);
+      color: #ffffff;
+    }
+
+    .grid-two {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1rem;
+    }
+
+    .integrations-table {
+      display: grid;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .integration-card {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.25rem 1.5rem;
+      background: linear-gradient(135deg, rgba(37, 99, 235, 0.05), rgba(37, 99, 235, 0));
+      display: grid;
+      gap: 0.75rem;
+    }
+
+    .integration-card h3 {
+      margin: 0;
+      font-size: 1.1rem;
+    }
+
+    .integration-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    .integration-meta span {
+      background: rgba(37, 99, 235, 0.08);
+      padding: 0.25rem 0.75rem;
+      border-radius: 999px;
+    }
+
+    .integration-actions {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .empty-state {
+      padding: 2rem;
+      border: 2px dashed var(--border);
+      border-radius: 16px;
+      text-align: center;
+      color: var(--text-muted);
+      display: grid;
+      gap: 0.5rem;
+    }
+
+    .detail-header {
+      display: grid;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .detail-grid {
+      display: grid;
+      gap: 1rem;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+
+    .detail-item {
+      background: rgba(37, 99, 235, 0.05);
+      padding: 1rem;
+      border-radius: 12px;
+    }
+
+    .detail-item dt {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 0.25rem;
+    }
+
+    .detail-item dd {
+      margin: 0;
+      font-weight: 500;
+      font-size: 0.95rem;
+    }
+
+    .process-list {
+      display: grid;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .process-card {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.25rem 1.5rem;
+      display: grid;
+      gap: 0.75rem;
+    }
+
+    .process-card header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0;
+      border: none;
+      background: transparent;
+      position: static;
+      box-shadow: none;
+    }
+
+    .process-card header h3 {
+      margin: 0;
+      font-size: 1rem;
+    }
+
+    .process-meta {
+      display: grid;
+      gap: 0.5rem;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    .process-meta strong {
+      color: var(--text-main);
+      font-weight: 600;
+    }
+
+    @media (max-width: 720px) {
+      header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+      }
+
+      main {
+        padding-bottom: 3rem;
+      }
+
+      button {
+        width: 100%;
+      }
+
+      .integration-actions {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>System Integration Registry</h1>
+      <p style="margin: 0; color: var(--text-muted);">Track integrations, their mechanics, and the business processes that drive them.</p>
+    </div>
+    <button class="ghost" type="button" id="back-to-list" style="display: none;">? Back to Registry</button>
+  </header>
+
+  <main>
+    <section id="integration-list-view">
+      <div class="section-header">
+        <div>
+          <h2>Integrations</h2>
+          <p>Register how your system connects, communicates, and is triggered.</p>
+        </div>
+      </div>
+
+      <form id="integration-form">
+        <div class="grid-two">
+          <label>
+            System(s) Owner & Name(s)
+            <input type="text" name="integrationName" placeholder="e.g. Policy Admin ? Claims Platform" required />
+          </label>
+          <label>
+            Technology / Interface Pattern
+            <input type="text" name="technology" placeholder="e.g. REST API, SFTP batch" required />
+          </label>
+        </div>
+        <div class="grid-two">
+          <label>
+            Frequency or Trigger
+            <input type="text" name="frequency" placeholder="e.g. Hourly, real-time event, nightly batch" required />
+          </label>
+          <label>
+            Authentication / Security
+            <input type="text" name="security" placeholder="e.g. OAuth 2.0, Mutual TLS, PGP" required />
+          </label>
+        </div>
+        <label>
+          Description / Notes
+          <textarea name="notes" placeholder="High-level context about the integration, systems involved, and expectations." required></textarea>
+        </label>
+        <button class="primary" type="submit">Add Integration</button>
+      </form>
+
+      <div id="integrations-container" class="integrations-table"></div>
+    </section>
+
+    <section id="integration-detail-view" class="hidden">
+      <div class="detail-header">
+        <div>
+          <h2 id="detail-title">Integration Detail</h2>
+          <p id="detail-subtitle" style="margin: 0; color: var(--text-muted);"></p>
+        </div>
+      </div>
+
+      <dl class="detail-grid" id="detail-grid"></dl>
+
+      <hr style="border: none; border-top: 1px solid var(--border); margin: 2rem 0;" />
+
+      <div>
+        <div class="section-header" style="margin-bottom: 1rem;">
+          <div>
+            <h2>Business Processes & Triggers</h2>
+            <p>Document what business events initiate the integration and the resulting actions.</p>
+          </div>
+        </div>
+
+        <form id="process-form">
+          <div class="grid-two">
+            <label>
+              Process Name
+              <input type="text" name="processName" placeholder="e.g. Customer Onboarding" required />
+            </label>
+            <label>
+              Triggering System / Event
+              <input type="text" name="trigger" placeholder="e.g. CRM creates customer record" required />
+            </label>
+          </div>
+          <label>
+            Resulting Integration Action
+            <textarea name="action" placeholder="e.g. Claims Platform imports the new customer record and provisions policy data." required></textarea>
+          </label>
+          <label>
+            Additional Notes
+            <textarea name="notes" placeholder="Dependencies, stakeholders, SLAs, fallbacks."></textarea>
+          </label>
+          <button class="primary" type="submit">Add Process</button>
+        </form>
+
+        <div id="processes-container" class="process-list"></div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const STORAGE_KEY = "integration-registry";
+    let integrations = loadIntegrations();
+
+    const listView = document.getElementById("integration-list-view");
+    const detailView = document.getElementById("integration-detail-view");
+    const integrationsContainer = document.getElementById("integrations-container");
+    const detailGrid = document.getElementById("detail-grid");
+    const detailTitle = document.getElementById("detail-title");
+    const detailSubtitle = document.getElementById("detail-subtitle");
+    const processesContainer = document.getElementById("processes-container");
+    const backToListButton = document.getElementById("back-to-list");
+    const integrationForm = document.getElementById("integration-form");
+    const processForm = document.getElementById("process-form");
+
+    let activeIntegrationId = null;
+
+    function loadIntegrations() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return [];
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          return parsed.map((integration) => ({
+            ...integration,
+            processes: Array.isArray(integration.processes) ? integration.processes : [],
+          }));
+        }
+      } catch (error) {
+        console.warn("Failed to parse stored integrations", error);
+      }
+      return [];
+    }
+
+    function persist() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(integrations));
+    }
+
+    function handleRouting() {
+      const hash = window.location.hash;
+      if (!hash || !hash.startsWith("#integration/")) {
+        showListView();
+        return;
+      }
+
+      const [, integrationId] = hash.split("/");
+      const integration = integrations.find((item) => item.id === integrationId);
+      if (!integration) {
+        showListView();
+        return;
+      }
+
+      showDetailView(integration);
+    }
+
+    function showListView() {
+      activeIntegrationId = null;
+      listView.classList.remove("hidden");
+      detailView.classList.add("hidden");
+      backToListButton.style.display = "none";
+      renderIntegrations();
+    }
+
+    function showDetailView(integration) {
+      activeIntegrationId = integration.id;
+      listView.classList.add("hidden");
+      detailView.classList.remove("hidden");
+      backToListButton.style.display = "inline-flex";
+
+      detailTitle.textContent = integration.name;
+      detailSubtitle.textContent = integration.notes || "";
+
+      detailGrid.innerHTML = "";
+      const info = [
+        { label: "Technology", value: integration.technology },
+        { label: "Frequency / Trigger", value: integration.frequency },
+        { label: "Authentication / Security", value: integration.security },
+      ];
+
+      info.forEach(({ label, value }) => {
+        const wrapper = document.createElement("div");
+        wrapper.className = "detail-item";
+
+        const dt = document.createElement("dt");
+        dt.textContent = label;
+
+        const dd = document.createElement("dd");
+        dd.textContent = value || "?";
+
+        wrapper.appendChild(dt);
+        wrapper.appendChild(dd);
+        detailGrid.appendChild(wrapper);
+      });
+
+      renderProcesses(integration);
+    }
+
+    function renderIntegrations() {
+      integrationsContainer.innerHTML = "";
+
+      if (!integrations.length) {
+        integrationsContainer.innerHTML = `
+          <div class="empty-state">
+            <strong>No integrations added yet.</strong>
+            <span>Use the form above to document an integration between your systems.</span>
+          </div>
+        `;
+        return;
+      }
+
+      integrations
+        .slice()
+        .sort((a, b) => a.name.localeCompare(b.name))
+        .forEach((integration) => {
+          const card = document.createElement("article");
+          card.className = "integration-card";
+
+          const title = document.createElement("h3");
+          title.textContent = integration.name;
+
+          const meta = document.createElement("div");
+          meta.className = "integration-meta";
+          meta.innerHTML = `
+            <span>${integration.technology}</span>
+            <span>${integration.frequency}</span>
+            <span>${integration.security}</span>
+            <span>${integration.processes.length} processes documented</span>
+          `;
+
+          const description = document.createElement("p");
+          description.style.margin = "0";
+          description.style.color = "var(--text-muted)";
+          description.textContent = integration.notes || "No description provided.";
+
+          const actions = document.createElement("div");
+          actions.className = "integration-actions";
+
+          const viewButton = document.createElement("button");
+          viewButton.type = "button";
+          viewButton.className = "primary";
+          viewButton.textContent = "View Details";
+          viewButton.addEventListener("click", () => {
+            window.location.hash = `#integration/${integration.id}`;
+          });
+
+          const removeButton = document.createElement("button");
+          removeButton.type = "button";
+          removeButton.className = "ghost";
+          removeButton.textContent = "Remove";
+          removeButton.addEventListener("click", () => {
+            const confirmed = confirm(
+              `Remove integration ?${integration.name}?? This will delete all documented processes.`
+            );
+            if (confirmed) {
+              integrations = integrations.filter((item) => item.id !== integration.id);
+              persist();
+              renderIntegrations();
+            }
+          });
+
+          actions.appendChild(viewButton);
+          actions.appendChild(removeButton);
+
+          card.appendChild(title);
+          card.appendChild(meta);
+          card.appendChild(description);
+          card.appendChild(actions);
+
+          integrationsContainer.appendChild(card);
+        });
+    }
+
+    function renderProcesses(integration) {
+      processesContainer.innerHTML = "";
+
+      if (!integration.processes.length) {
+        processesContainer.innerHTML = `
+          <div class="empty-state">
+            <strong>No processes documented yet.</strong>
+            <span>Add the business process details using the form above.</span>
+          </div>
+        `;
+        return;
+      }
+
+      integration.processes
+        .slice()
+        .sort((a, b) => a.name.localeCompare(b.name))
+        .forEach((process) => {
+          const card = document.createElement("article");
+          card.className = "process-card";
+
+          const header = document.createElement("header");
+          const heading = document.createElement("h3");
+          heading.textContent = process.name;
+
+          const removeButton = document.createElement("button");
+          removeButton.type = "button";
+          removeButton.className = "ghost";
+          removeButton.textContent = "Remove";
+          removeButton.addEventListener("click", () => {
+            removeProcess(integration.id, process.id);
+          });
+
+          header.appendChild(heading);
+          header.appendChild(removeButton);
+
+          const meta = document.createElement("div");
+          meta.className = "process-meta";
+          meta.innerHTML = `
+            <div><strong>Trigger:</strong> ${process.trigger}</div>
+            <div><strong>Action:</strong> ${process.action}</div>
+            ${process.notes ? `<div><strong>Notes:</strong> ${process.notes}</div>` : ""}
+          `;
+
+          card.appendChild(header);
+          card.appendChild(meta);
+          processesContainer.appendChild(card);
+        });
+    }
+
+    function addIntegration(formData) {
+      const integration = {
+        id: crypto.randomUUID ? crypto.randomUUID() : `integration-${Date.now()}`,
+        name: formData.get("integrationName").trim(),
+        technology: formData.get("technology").trim(),
+        frequency: formData.get("frequency").trim(),
+        security: formData.get("security").trim(),
+        notes: formData.get("notes").trim(),
+        processes: [],
+        createdAt: Date.now(),
+      };
+
+      integrations.push(integration);
+      persist();
+      renderIntegrations();
+    }
+
+    function addProcess(integrationId, formData) {
+      const integration = integrations.find((item) => item.id === integrationId);
+      if (!integration) return;
+
+      const process = {
+        id: crypto.randomUUID ? crypto.randomUUID() : `process-${Date.now()}`,
+        name: formData.get("processName").trim(),
+        trigger: formData.get("trigger").trim(),
+        action: formData.get("action").trim(),
+        notes: formData.get("notes").trim(),
+        createdAt: Date.now(),
+      };
+
+      integration.processes.push(process);
+      persist();
+      renderProcesses(integration);
+    }
+
+    function removeProcess(integrationId, processId) {
+      const integration = integrations.find((item) => item.id === integrationId);
+      if (!integration) return;
+
+      integration.processes = integration.processes.filter((process) => process.id !== processId);
+      persist();
+      renderProcesses(integration);
+    }
+
+    integrationForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const formData = new FormData(integrationForm);
+      addIntegration(formData);
+      integrationForm.reset();
+      integrationForm.querySelector("input").focus();
+    });
+
+    processForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      if (!activeIntegrationId) return;
+      const formData = new FormData(processForm);
+      addProcess(activeIntegrationId, formData);
+      processForm.reset();
+      processForm.querySelector("input").focus();
+    });
+
+    backToListButton.addEventListener("click", () => {
+      window.location.hash = "";
+      showListView();
+    });
+
+    window.addEventListener("hashchange", handleRouting);
+
+    // Initial render
+    renderIntegrations();
+    handleRouting();
+  </script>
+</body>
+</html>
